@@ -1,5 +1,5 @@
 {
-  "_comment": "BAUER GROUP RabbitMQ - example declarative topology. Copy to config/rabbitmq-init.json, edit, and mount it (see .env RABBITMQ_INIT_CONFIG). ${VAR} placeholders resolve from the init container environment. Processed idempotently on every start; additive only (never deletes).",
+  "_comment": "BAUER GROUP RabbitMQ - example declarative topology. Full field reference: docs/messaging-topology.md. Copy to config/rabbitmq-init.json, edit, and mount it (see .env RABBITMQ_INIT_CONFIG). ${VAR} placeholders resolve from the init container environment (missing var = hard error). Keys starting with _ are comments. Processed idempotently on every start; additive only (never deletes).",
 
   "vhosts": [
     {

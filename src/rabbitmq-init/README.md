@@ -32,30 +32,26 @@ loopback in config, but the init container guarantees it is removed on every run
 
 ## JSON configuration schema
 
+The full configuration file — every block, all fields, types, defaults, allowed
+values, and reference tables (queue `arguments`, policy `definition` keys, user
+tags) — is documented in the authoritative reference:
+
+> **➡ [docs/messaging-topology.md](../../docs/messaging-topology.md)**
+
+A runnable, annotated example lives at
+[`config/rabbitmq-init.example.json`](../../config/rabbitmq-init.example.json)
+(mounted automatically in development mode). At a glance, the top level is:
+
 ```jsonc
 {
-  "vhosts":     [{ "name": "applications", "default_queue_type": "quorum", "description": "..." }],
-  "users":      [{ "name": "app", "password": "${APP_PASSWORD}", "tags": ["management"] }],
-  "permissions":[{ "vhost": "applications", "user": "app",
-                   "configure": "^app\\.", "write": "^app\\.", "read": "^app\\." }],
-  "topic_permissions": [{ "vhost": "applications", "user": "app",
-                          "exchange": "app.events", "write": "^notify\\.", "read": "^notify\\." }],
-  "exchanges":  [{ "vhost": "applications", "name": "app.events", "type": "topic", "durable": true }],
-  "queues":     [{ "vhost": "applications", "name": "app.notifications", "type": "quorum",
-                   "arguments": { "x-dead-letter-exchange": "app.dlx", "x-delivery-limit": 5 } }],
-  "bindings":   [{ "vhost": "applications", "source": "app.events", "destination": "app.notifications",
-                   "destination_type": "queue", "routing_key": "notify.#" }],
-  "policies":   [{ "vhost": "applications", "name": "app-dlx", "pattern": "^app\\.",
-                   "apply-to": "quorum_queues", "priority": 1,
-                   "definition": { "dead-letter-exchange": "app.dlx" } }],
-  "operator_policies": [{ "vhost": "applications", "name": "max-len", "pattern": ".*",
-                          "apply-to": "queues", "definition": { "max-length": 1000000 } }],
-  "parameters": [{ "component": "shovel", "vhost": "applications", "name": "migrate",
-                   "value": { "src-uri": "amqp://old", "src-queue": "orders",
-                              "dest-uri": "amqp://localhost", "dest-queue": "orders" } }],
-  "global_parameters": [{ "name": "cluster_name", "value": "bauer-group-amqp" }]
+  "vhosts": [...], "users": [...], "permissions": [...], "topic_permissions": [...],
+  "exchanges": [...], "queues": [...], "bindings": [...],
+  "policies": [...], "operator_policies": [...], "parameters": [...], "global_parameters": [...]
 }
 ```
+
+Every block is optional. String values support `${VAR}` (resolved from the
+environment; missing → hard error), and `_`-prefixed keys are treated as comments.
 
 ## Task reference
 

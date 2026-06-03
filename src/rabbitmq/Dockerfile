@@ -102,7 +102,7 @@ EXPOSE 5671 5672 15672 15692 25672
 # ---------------------------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------------------------
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD rabbitmq-diagnostics -q ping || exit 1
 
 # ---------------------------------------------------------------------------

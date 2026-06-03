@@ -57,12 +57,13 @@ x-rabbitmq-common: &rabbitmq-common
     - RABBITMQ_ENABLE_STOMP=${RABBITMQ_ENABLE_STOMP:-false}
     - RABBITMQ_ENABLE_WEB_STOMP=${RABBITMQ_ENABLE_WEB_STOMP:-false}
   healthcheck:
+    # start_period absorbs the cold boot (cert-gen + quorum DB init): failures
+    # during it don't count and a single pass flips to healthy immediately.
+    # interval/retries govern only steady-state failure detection (3 x 30s).
     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-    interval: 15s
+    interval: 30s
     timeout: 10s
-    retries: 8
-    # Generous: a cold first boot does cert-gen + fresh quorum DB init. Failing
-    # checks during this window don't count, so the init isn't aborted early.
+    retries: 3
     start_period: 60s
 
 x-init-environment: &init-environment

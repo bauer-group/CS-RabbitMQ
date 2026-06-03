@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.2.0...v0.2.1) (2026-06-03)
+
+### 🐛 Bug Fixes
+
+* **init:** hardened cold-boot readiness; fixed watermark fallback ([63c6bed](https://github.com/bauer-group/CS-RabbitMQ/commit/63c6bedda7e563dc9365b4b629a978ac614dd2bf))
+
 ## [0.2.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.2...v0.2.0) (2026-06-03)
 
 ### 🚀 Features

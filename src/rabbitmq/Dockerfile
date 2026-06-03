@@ -76,7 +76,7 @@ RUN chmod a+rx /usr/local/bin/docker-entrypoint-custom.sh
 # ---------------------------------------------------------------------------
 ENV RABBITMQ_TLS_MODE=selfsigned \
     RABBITMQ_LOG_LEVEL=info \
-    RABBITMQ_VM_MEMORY_HIGH_WATERMARK=0.4 \
+    RABBITMQ_VM_MEMORY_HIGH_WATERMARK=1600MB \
     RABBITMQ_DISK_FREE_LIMIT=2GB \
     RABBITMQ_CHANNEL_MAX=2048 \
     RABBITMQ_FRAME_MAX=131072 \
@@ -102,7 +102,7 @@ EXPOSE 5671 5672 15672 15692 25672
 # ---------------------------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------------------------
-HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
     CMD rabbitmq-diagnostics -q ping || exit 1
 
 # ---------------------------------------------------------------------------

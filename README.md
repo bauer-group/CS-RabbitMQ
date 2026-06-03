@@ -72,7 +72,9 @@ permissions, exchanges, queues, bindings, policies, shovels — from a single JS
    | Traefik | `${AMQP_HOSTNAME}:5672` | `${AMQP_HOSTNAME}:5671` | `https://${CONSOLE_HOSTNAME}` | (internal) |
 
    Log in with `RABBITMQ_ADMIN_USER` / `RABBITMQ_ADMIN_PASSWORD`. The insecure
-   `guest` account is never created.
+   `guest` account is never created (a default user is defined), is restricted to
+   loopback by config, and is **actively deleted** by the init container on every
+   run — three independent layers.
 
 ## Architecture
 
@@ -109,9 +111,10 @@ permissions, exchanges, queues, bindings, policies, shovels — from a single JS
 
 Everything is driven from `.env`:
 
-- **Sizing** — `RABBITMQ_MEM_LIMIT`, `RABBITMQ_VM_MEMORY_HIGH_WATERMARK`,
-  `RABBITMQ_DISK_FREE_LIMIT`, `RABBITMQ_CHANNEL_MAX`, `RABBITMQ_CONSUMER_TIMEOUT`, …
-  See the preset tables in `.env.example` and [docs/sizing-and-tuning.md](docs/sizing-and-tuning.md).
+- **Sizing** — `RABBITMQ_VM_MEMORY_HIGH_WATERMARK` (absolute; no hard container
+  cap by design), `RABBITMQ_DISK_FREE_LIMIT`, `RABBITMQ_CHANNEL_MAX`,
+  `RABBITMQ_CONSUMER_TIMEOUT`, … See the preset tables in `.env.example` and
+  [docs/sizing-and-tuning.md](docs/sizing-and-tuning.md).
 - **TLS** — `RABBITMQ_TLS_MODE` (`selfsigned` | `managed` | `byo`).
   See [docs/tls-and-certificates.md](docs/tls-and-certificates.md).
 - **Topology** — `config/rabbitmq-init.json`.

@@ -35,7 +35,9 @@ services:
     hostname: ${RABBITMQ_NODE_HOSTNAME:-rabbitmq}
     restart: unless-stopped
     <<: *logging
-    mem_limit: ${RABBITMQ_MEM_LIMIT:-2g}
+    # No hard mem_limit by design: a cgroup cap OOM-kills (SIGKILL) the broker on
+    # a transient spike. Memory is bounded at the application level via
+    # vm_memory_high_watermark.absolute (graceful publisher back-pressure).
     environment:
       - TZ=${TIME_ZONE:-Etc/UTC}
       # Bootstrap admin (defining a default user means 'guest' is never created)
@@ -79,7 +81,8 @@ services:
       interval: 15s
       timeout: 10s
       retries: 8
-      start_period: 45s
+      # Generous: a cold first boot does cert-gen + fresh quorum DB init.
+      start_period: 60s
 
 ### Initialization (runs on every start, idempotent) ###
   rabbitmq-init:

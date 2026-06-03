@@ -33,7 +33,9 @@ x-rabbitmq-common: &rabbitmq-common
       max-size: "50m"
       max-file: "3"
   hostname: ${RABBITMQ_NODE_HOSTNAME:-rabbitmq}
-  mem_limit: ${RABBITMQ_MEM_LIMIT:-2g}
+  # No hard mem_limit by design: a cgroup cap OOM-kills (SIGKILL) the broker on a
+  # transient spike. Memory is bounded at the application level via
+  # vm_memory_high_watermark.absolute (graceful publisher back-pressure instead).
   environment:
     - TZ=${TIME_ZONE:-Etc/UTC}
     # Bootstrap admin (defining a default user means 'guest' is never created)
@@ -67,7 +69,9 @@ x-rabbitmq-common: &rabbitmq-common
     interval: 15s
     timeout: 10s
     retries: 8
-    start_period: 45s
+    # Generous: a cold first boot does cert-gen + fresh quorum DB init. Failing
+    # checks during this window don't count, so the init isn't aborted early.
+    start_period: 60s
 
 x-init-environment: &init-environment
   - TZ=${TIME_ZONE:-Etc/UTC}

@@ -7,30 +7,43 @@ connections**, then copy that column's values.
 
 ## Presets
 
-| Profile | Messages/day | Concurrent conn | `MEM_LIMIT` | `VM_MEMORY_HIGH_WATERMARK` | `DISK_FREE_LIMIT` | `CHANNEL_MAX` | Host RAM |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| **Small** (default) | < 1 M | < 200 | `2g` | `0.4` | `2GB` | `2048` | 2–4 GB |
-| **Medium** | 1 M – 50 M | 200 – 2 000 | `4g` | `0.5` | `4GB` | `4096` | 8 GB |
-| **Large** | 50 M – 500 M+ | 2 000 – 10 000+ | `8g` | `0.6` | `8GB` | `8192` | 16–32 GB |
+| Profile | Messages/day | Concurrent conn | `VM_MEMORY_HIGH_WATERMARK` | `DISK_FREE_LIMIT` | `CHANNEL_MAX` | Host RAM |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Small** (default) | < 1 M | < 200 | `1600MB` | `2GB` | `2048` | 2–4 GB |
+| **Medium** | 1 M – 50 M | 200 – 2 000 | `3GB` | `4GB` | `4096` | 6–8 GB |
+| **Large** | 50 M – 500 M+ | 2 000 – 10 000+ | `6GB` | `8GB` | `8192` | 12–16 GB |
 
 Beyond large on a single node, scale horizontally — see [clustering.md](clustering.md).
 
 ## How the knobs work
 
-### Memory (`RABBITMQ_VM_MEMORY_HIGH_WATERMARK` + `RABBITMQ_MEM_LIMIT`)
+### Memory (`RABBITMQ_VM_MEMORY_HIGH_WATERMARK`) — and why there is no `mem_limit`
 
-RabbitMQ 4.x is **cgroup-aware**: it detects the container memory limit set by
-`mem_limit`. The watermark is a *fraction* of that limit. When memory use crosses
-it, publishers are **throttled** (back-pressure) until consumers catch up.
+The watermark is an **absolute** memory threshold. When the broker's memory use
+crosses it, publishers are **throttled** (back-pressure) until consumers catch
+up — a graceful, application-level guard.
 
 ```
-throttle threshold ≈ RABBITMQ_MEM_LIMIT × RABBITMQ_VM_MEMORY_HIGH_WATERMARK
-# small: 2g × 0.4 = ~0.8 GB
+vm_memory_high_watermark.absolute = RABBITMQ_VM_MEMORY_HIGH_WATERMARK
+# small default: 1600MB
 ```
 
-Using a *relative* watermark means the threshold scales automatically when you
-raise `mem_limit`. Quorum queues keep their data on disk and only a working set
-in memory, so they tolerate this back-pressure gracefully.
+**There is deliberately no Docker `mem_limit`.** A hard cgroup cap makes Docker
+**OOM-kill (SIGKILL)** the container the instant it crosses the limit — abrupt,
+mid-transaction, with no graceful shutdown. That turns a healthy broker handling
+a transient spike (a GC pause, quorum log compaction, a burst of large messages)
+into a crash. The watermark prevents the spike from happening in the first place
+by slowing publishers *before* memory is exhausted, so a hard cap is not just
+redundant — it's actively harmful to availability.
+
+Set the watermark **below** the RAM the host actually has free for the broker
+(the *Host RAM target* column leaves headroom for the Erlang runtime, OS, and
+disk cache). Quorum queues keep their data on disk and only a working set in
+memory, so they tolerate this back-pressure gracefully.
+
+> If you *must* run under an external orchestrator that imposes a cgroup limit,
+> set the watermark to roughly 60–70% of that limit so RabbitMQ throttles well
+> before the OOM killer fires.
 
 ### Disk (`RABBITMQ_DISK_FREE_LIMIT`)
 

@@ -18,10 +18,12 @@ log.console.level = ${RABBITMQ_LOG_LEVEL}
 ## ----------------------------------------------------------------------------
 ## Resource alarms — memory & disk high/low watermarks
 ## ----------------------------------------------------------------------------
-# Fraction of detected (cgroup-aware) container memory at which publishers are
-# throttled. RabbitMQ 4.x honours cgroup limits, so 'relative' scales with the
-# service mem_limit set in the compose file.
-vm_memory_high_watermark.relative = ${RABBITMQ_VM_MEMORY_HIGH_WATERMARK}
+# ABSOLUTE memory threshold at which publishers are throttled (graceful
+# back-pressure). We use absolute (not relative) and set NO Docker mem_limit:
+# a hard cgroup cap would OOM-kill the broker on a transient spike, whereas this
+# throttles publishers before memory runs out. Keep it below the host RAM the
+# broker can use. Accepts e.g. 1600MB, 3GB.
+vm_memory_high_watermark.absolute = ${RABBITMQ_VM_MEMORY_HIGH_WATERMARK}
 # Free-disk floor below which publishing is blocked (accepts e.g. 2GB).
 disk_free_limit.absolute = ${RABBITMQ_DISK_FREE_LIMIT}
 

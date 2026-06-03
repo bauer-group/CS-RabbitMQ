@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/bauer-group/automation-templates/main/.github/config/docker-base-image-monitor/docker-base-images.schema.json",
+  "_description": "CS-RabbitMQ stack — upstream images consumed via Dockerfiles and docker-compose. The monitor tracks digests and triggers a release when an upstream image moves.",
+  "images": [
+    {
+      "name": "rabbitmq",
+      "image": "rabbitmq",
+      "tag": "4.3.1-management",
+      "variable": "RABBITMQ_MANAGEMENT_DIGEST",
+      "description": "RabbitMQ broker base image (src/rabbitmq/Dockerfile)"
+    },
+    {
+      "name": "python-alpine",
+      "image": "python",
+      "tag": "3.14-alpine",
+      "variable": "PYTHON_ALPINE_DIGEST",
+      "description": "Base image for the rabbitmq-init container (src/rabbitmq-init/Dockerfile)"
+    },
+    {
+      "name": "cs-rabbitmq",
+      "image": "ghcr.io/bauer-group/cs-rabbitmq/rabbitmq",
+      "tag": "latest",
+      "variable": "CS_RABBITMQ_LATEST_DIGEST",
+      "description": "Published RabbitMQ server image (BAUER GROUP build)"
+    },
+    {
+      "name": "cs-rabbitmq-init",
+      "image": "ghcr.io/bauer-group/cs-rabbitmq/rabbitmq-init",
+      "tag": "latest",
+      "variable": "CS_RABBITMQ_INIT_LATEST_DIGEST",
+      "description": "Published RabbitMQ init container (idempotent provisioning)"
+    },
+    {
+      "name": "traefik-certs-dumper",
+      "image": "ldez/traefik-certs-dumper",
+      "tag": "latest",
+      "variable": "TRAEFIK_CERTS_DUMPER_DIGEST",
+      "description": "Optional sidecar that dumps Let's Encrypt certs for AMQPS (docker-compose.traefik.yml)"
+    }
+  ],
+  "settings": {
+    "commit-prefix": "chore(deps)",
+    "auto-create-variables": true
+  }
+}

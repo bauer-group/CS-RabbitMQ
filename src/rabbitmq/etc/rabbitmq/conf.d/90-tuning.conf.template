@@ -1,0 +1,63 @@
+## =============================================================================
+## BAUER GROUP RabbitMQ - Tuning Configuration (TEMPLATE)
+## =============================================================================
+## Rendered to 90-tuning.conf at container start by docker-entrypoint-custom.sh
+## via `envsubst`. Every value below comes from an environment variable so the
+## broker can be sized (small / medium / large) entirely from .env — see the
+## sizing preset tables in .env.example and docs/sizing-and-tuning.md.
+##
+## DO NOT add literal '$' characters here that are not meant to be substituted.
+## =============================================================================
+
+## ----------------------------------------------------------------------------
+## Logging
+## ----------------------------------------------------------------------------
+log.console = true
+log.console.level = ${RABBITMQ_LOG_LEVEL}
+
+## ----------------------------------------------------------------------------
+## Resource alarms — memory & disk high/low watermarks
+## ----------------------------------------------------------------------------
+# Fraction of detected (cgroup-aware) container memory at which publishers are
+# throttled. RabbitMQ 4.x honours cgroup limits, so 'relative' scales with the
+# service mem_limit set in the compose file.
+vm_memory_high_watermark.relative = ${RABBITMQ_VM_MEMORY_HIGH_WATERMARK}
+# Free-disk floor below which publishing is blocked (accepts e.g. 2GB).
+disk_free_limit.absolute = ${RABBITMQ_DISK_FREE_LIMIT}
+
+## ----------------------------------------------------------------------------
+## Connection / channel limits
+## ----------------------------------------------------------------------------
+# Max channels per connection (0 = unlimited). Guards against channel leaks.
+channel_max = ${RABBITMQ_CHANNEL_MAX}
+
+## ----------------------------------------------------------------------------
+## Message & frame sizing
+## ----------------------------------------------------------------------------
+# Max AMQP frame size in bytes.
+frame_max = ${RABBITMQ_FRAME_MAX}
+# Absolute max message size in bytes (RabbitMQ 4.x hard ceiling is 536870912).
+max_message_size = ${RABBITMQ_MAX_MESSAGE_SIZE}
+
+## ----------------------------------------------------------------------------
+## Heartbeats & consumer acknowledgement timeout
+## ----------------------------------------------------------------------------
+# AMQP heartbeat interval in seconds (0 disables).
+heartbeat = ${RABBITMQ_HEARTBEAT}
+# Time a consumer may hold an unacked delivery before the channel is closed,
+# in milliseconds (4.x default 1800000 = 30 min). Raise for slow consumers.
+consumer_timeout = ${RABBITMQ_CONSUMER_TIMEOUT}
+
+## ----------------------------------------------------------------------------
+## Default queue type for queues that do not declare x-queue-type
+## ----------------------------------------------------------------------------
+# quorum (recommended, HA-ready) | classic | stream
+default_queue_type = ${RABBITMQ_DEFAULT_QUEUE_TYPE}
+
+## ----------------------------------------------------------------------------
+## TLS peer verification
+## ----------------------------------------------------------------------------
+# verify_none keeps self-signed deployments friction-free. Switch to
+# verify_peer (and provide a real CA) to require/validate client certificates.
+ssl_options.verify = ${RABBITMQ_SSL_VERIFY}
+ssl_options.fail_if_no_peer_cert = ${RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT}

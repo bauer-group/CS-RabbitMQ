@@ -1,0 +1,136 @@
+{
+  "_comment": "BAUER GROUP RabbitMQ - example declarative topology. Copy to config/rabbitmq-init.json, edit, and mount it (see .env RABBITMQ_INIT_CONFIG). ${VAR} placeholders resolve from the init container environment. Processed idempotently on every start; additive only (never deletes).",
+
+  "vhosts": [
+    {
+      "name": "applications",
+      "default_queue_type": "quorum",
+      "description": "Application workloads (quorum-by-default, HA-ready)"
+    }
+  ],
+
+  "users": [
+    {
+      "name": "${APP_USER}",
+      "password": "${APP_PASSWORD}",
+      "tags": ["management"]
+    },
+    {
+      "name": "${MONITORING_USER}",
+      "password": "${MONITORING_PASSWORD}",
+      "tags": ["monitoring"]
+    }
+  ],
+
+  "permissions": [
+    {
+      "vhost": "applications",
+      "user": "${APP_USER}",
+      "configure": "^app\\.",
+      "write": "^app\\.",
+      "read": "^app\\."
+    },
+    {
+      "vhost": "applications",
+      "user": "${MONITORING_USER}",
+      "configure": "^$",
+      "write": "^$",
+      "read": ".*"
+    }
+  ],
+
+  "topic_permissions": [
+    {
+      "vhost": "applications",
+      "user": "${APP_USER}",
+      "exchange": "app.events",
+      "write": "^notify\\.",
+      "read": "^notify\\."
+    }
+  ],
+
+  "exchanges": [
+    {
+      "vhost": "applications",
+      "name": "app.events",
+      "type": "topic",
+      "durable": true
+    },
+    {
+      "vhost": "applications",
+      "name": "app.dlx",
+      "type": "fanout",
+      "durable": true
+    }
+  ],
+
+  "queues": [
+    {
+      "vhost": "applications",
+      "name": "app.notifications",
+      "type": "quorum",
+      "arguments": {
+        "x-dead-letter-exchange": "app.dlx",
+        "x-delivery-limit": 5
+      }
+    },
+    {
+      "vhost": "applications",
+      "name": "app.dead-letter",
+      "type": "quorum"
+    }
+  ],
+
+  "bindings": [
+    {
+      "vhost": "applications",
+      "source": "app.events",
+      "destination": "app.notifications",
+      "destination_type": "queue",
+      "routing_key": "notify.#"
+    },
+    {
+      "vhost": "applications",
+      "source": "app.dlx",
+      "destination": "app.dead-letter",
+      "destination_type": "queue"
+    }
+  ],
+
+  "policies": [
+    {
+      "vhost": "applications",
+      "name": "app-dlx-and-limits",
+      "pattern": "^app\\.",
+      "apply-to": "quorum_queues",
+      "priority": 1,
+      "definition": {
+        "dead-letter-exchange": "app.dlx",
+        "delivery-limit": 5
+      }
+    }
+  ],
+
+  "operator_policies": [
+    {
+      "vhost": "applications",
+      "name": "app-max-length",
+      "pattern": "^app\\.",
+      "apply-to": "queues",
+      "priority": 1,
+      "definition": {
+        "max-length": 1000000
+      }
+    }
+  ],
+
+  "_parameters_note": "Dynamic shovels / federation upstreams go in 'parameters'. They are the prime tool for migrating queues off the OLD broker without downtime. Left empty here so the demo doesn't spawn a shovel against an unreachable host - see docs/messaging-topology.md for a copy-paste shovel example.",
+  "parameters": [],
+
+  "global_parameters": [
+    {
+      "name": "cluster_name",
+      "value": "eu-central1-broker-bauer-group-com"
+    }
+  ]
+}

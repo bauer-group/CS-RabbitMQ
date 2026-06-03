@@ -1,0 +1,196 @@
+# =============================================================================
+# RabbitMQ - Single Server Mode (Traefik Reverse Proxy)
+# =============================================================================
+# Usage: docker compose -f docker-compose.traefik.yml up -d
+#
+# Prerequisites:
+#   - Traefik running on the external ${PROXY_NETWORK} network
+#   - DNS: ${CONSOLE_HOSTNAME} -> this host (Management UI)
+#          ${AMQP_HOSTNAME}    -> this host (AMQP/AMQPS, optional but recommended)
+#
+# The Management UI is served over HTTPS by Traefik (Let's Encrypt). AMQP and
+# AMQPS are NOT HTTP, so they are published as host TCP ports and RabbitMQ
+# terminates TLS itself. For real Let's Encrypt certs on AMQPS, enable the
+# optional certs-dumper sidecar:
+#
+#   docker compose -f docker-compose.traefik.yml --profile tls-letsencrypt up -d
+#   (and set RABBITMQ_TLS_MODE=managed in .env)
+#
+# Access:
+#   - Management  https://${CONSOLE_HOSTNAME}
+#   - AMQP        amqp://${AMQP_HOSTNAME}:${PORT_AMQP:-5672}
+#   - AMQPS       amqps://${AMQP_HOSTNAME}:${PORT_AMQPS:-5671}
+# =============================================================================
+
+
+### Service Templates ###
+x-rabbitmq-common: &rabbitmq-common
+  image: ${RABBITMQ_IMAGE:-ghcr.io/bauer-group/cs-rabbitmq/rabbitmq}:${RABBITMQ_IMAGE_VERSION:-latest}
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "3"
+  hostname: ${RABBITMQ_NODE_HOSTNAME:-rabbitmq}
+  mem_limit: ${RABBITMQ_MEM_LIMIT:-2g}
+  environment:
+    - TZ=${TIME_ZONE:-Etc/UTC}
+    # Bootstrap admin (defining a default user means 'guest' is never created)
+    - RABBITMQ_DEFAULT_USER=${RABBITMQ_ADMIN_USER:-admin}
+    - RABBITMQ_DEFAULT_PASS=${RABBITMQ_ADMIN_PASSWORD:-admin}
+    - RABBITMQ_DEFAULT_VHOST=/
+    - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE:-change-me-erlang-cookie}
+    # TLS — set RABBITMQ_TLS_MODE=managed when using the certs-dumper profile
+    - RABBITMQ_TLS_MODE=${RABBITMQ_TLS_MODE:-selfsigned}
+    - RABBITMQ_TLS_CN=${AMQP_HOSTNAME:-${RABBITMQ_NODE_HOSTNAME:-rabbitmq}}
+    - RABBITMQ_TLS_MANAGED_WAIT=${RABBITMQ_TLS_MANAGED_WAIT:-30}
+    - RABBITMQ_SSL_VERIFY=${RABBITMQ_SSL_VERIFY:-verify_none}
+    - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=${RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT:-false}
+    # Tuning (sizing presets — see .env.example)
+    - RABBITMQ_LOG_LEVEL=${RABBITMQ_LOG_LEVEL:-info}
+    - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=${RABBITMQ_VM_MEMORY_HIGH_WATERMARK:-0.4}
+    - RABBITMQ_DISK_FREE_LIMIT=${RABBITMQ_DISK_FREE_LIMIT:-2GB}
+    - RABBITMQ_CHANNEL_MAX=${RABBITMQ_CHANNEL_MAX:-2048}
+    - RABBITMQ_FRAME_MAX=${RABBITMQ_FRAME_MAX:-131072}
+    - RABBITMQ_MAX_MESSAGE_SIZE=${RABBITMQ_MAX_MESSAGE_SIZE:-134217728}
+    - RABBITMQ_HEARTBEAT=${RABBITMQ_HEARTBEAT:-60}
+    - RABBITMQ_CONSUMER_TIMEOUT=${RABBITMQ_CONSUMER_TIMEOUT:-1800000}
+    - RABBITMQ_DEFAULT_QUEUE_TYPE=${RABBITMQ_DEFAULT_QUEUE_TYPE:-quorum}
+    # Optional protocols (off by default)
+    - RABBITMQ_ENABLE_MQTT=${RABBITMQ_ENABLE_MQTT:-false}
+    - RABBITMQ_ENABLE_WEB_MQTT=${RABBITMQ_ENABLE_WEB_MQTT:-false}
+    - RABBITMQ_ENABLE_STOMP=${RABBITMQ_ENABLE_STOMP:-false}
+    - RABBITMQ_ENABLE_WEB_STOMP=${RABBITMQ_ENABLE_WEB_STOMP:-false}
+  healthcheck:
+    test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+    interval: 15s
+    timeout: 10s
+    retries: 8
+    start_period: 45s
+
+x-init-environment: &init-environment
+  - TZ=${TIME_ZONE:-Etc/UTC}
+  - RABBITMQ_MGMT_URL=http://rabbitmq:15672
+  - RABBITMQ_ADMIN_USER=${RABBITMQ_ADMIN_USER:-admin}
+  - RABBITMQ_ADMIN_PASSWORD=${RABBITMQ_ADMIN_PASSWORD:-admin}
+  - RABBITMQ_WAIT_TIMEOUT=${RABBITMQ_WAIT_TIMEOUT:-60}
+  - APP_USER=${APP_USER:-app}
+  - APP_PASSWORD=${APP_PASSWORD:-app}
+  - MONITORING_USER=${MONITORING_USER:-metrics}
+  - MONITORING_PASSWORD=${MONITORING_PASSWORD:-metrics}
+
+
+services:
+### Message Broker ###
+  rabbitmq:
+    <<: *rabbitmq-common
+    container_name: ${STACK_NAME:-rabbitmq}_SERVER
+    ports:
+      # AMQP / AMQPS published directly (Traefik is HTTP-only)
+      - "${PORT_AMQP:-5672}:5672"
+      - "${PORT_AMQPS:-5671}:5671"
+      # Prometheus scrape endpoint (optional host exposure)
+      #- "${PORT_PROMETHEUS:-15692}:15692"
+    expose:
+      - 15672/tcp
+      - 15692/tcp
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-certs:/etc/rabbitmq/certs
+    networks:
+      local:
+      proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NETWORK:-EDGEPROXY}"
+
+      # ── HTTP -> HTTPS redirect ──────────────────────────────────────────
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui-http.rule=Host(`${CONSOLE_HOSTNAME}`)"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui-http.entrypoints=web"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui-http.middlewares=${STACK_NAME:-rabbitmq}-redirect-to-secure"
+      - "traefik.http.middlewares.${STACK_NAME:-rabbitmq}-redirect-to-secure.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.${STACK_NAME:-rabbitmq}-redirect-to-secure.redirectscheme.permanent=true"
+
+      # ── Management UI — HTTPS ───────────────────────────────────────────
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui.rule=Host(`${CONSOLE_HOSTNAME}`)"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui.entrypoints=web-secure"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui.tls=true"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.${STACK_NAME:-rabbitmq}-ui.service=${STACK_NAME:-rabbitmq}-ui"
+      - "traefik.http.services.${STACK_NAME:-rabbitmq}-ui.loadBalancer.server.port=15672"
+
+### Initialization (runs on every start, idempotent) ###
+  rabbitmq-init:
+    image: ${RABBITMQ_INIT_IMAGE:-ghcr.io/bauer-group/cs-rabbitmq/rabbitmq-init}:${RABBITMQ_INIT_VERSION:-latest}
+    container_name: ${STACK_NAME:-rabbitmq}_INIT
+    restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    environment: *init-environment
+    # To provision a topology, copy config/rabbitmq-init.example.json to
+    # config/rabbitmq-init.json, set RABBITMQ_INIT_CONFIG in .env, uncomment:
+    #volumes:
+    #  - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.json}:/app/config/init.json:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      local:
+
+### Certificate Dumper (optional — profile: tls-letsencrypt) ###
+  # Extracts the Let's Encrypt cert/key Traefik obtained (from acme.json) into
+  # the shared certs volume as cert.pem / key.pem, so RabbitMQ can serve a real
+  # CA-signed certificate on AMQPS (5671). Set RABBITMQ_TLS_MODE=managed.
+  #
+  # Flat mode dumps the DEFAULT certificate. Ensure Traefik serves the
+  # ${AMQP_HOSTNAME} certificate as default, or switch to --domain-subdir with
+  # a --post-hook (requires a shell-capable dumper image). See
+  # docs/tls-and-certificates.md.
+  certs-dumper:
+    image: ${CERTS_DUMPER_IMAGE:-ldez/traefik-certs-dumper}:${CERTS_DUMPER_VERSION:-latest}
+    profiles: ["tls-letsencrypt"]
+    container_name: ${STACK_NAME:-rabbitmq}_CERTS
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    command: >
+      file
+      --version v3
+      --watch
+      --source /traefik/acme.json
+      --dest /output
+      --crt-name cert --crt-ext .pem
+      --key-name key --key-ext .pem
+    volumes:
+      - ${TRAEFIK_ACME_FILE:-./acme.json}:/traefik/acme.json:ro
+      - rabbitmq-certs:/output
+    networks:
+      local:
+
+
+### Volumes ###
+volumes:
+  rabbitmq-data:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-data
+  rabbitmq-certs:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-certs
+
+
+### Networks ###
+networks:
+  local:
+    driver: bridge
+    name: ${STACK_NAME:-rabbitmq}
+    enable_ipv6: true
+  proxy:
+    name: ${PROXY_NETWORK:-EDGEPROXY}
+    external: true

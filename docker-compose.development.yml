@@ -1,0 +1,139 @@
+# =============================================================================
+# RabbitMQ - Development Mode (Local Builds)
+# =============================================================================
+# Usage: docker compose -f docker-compose.development.yml up -d --build
+#
+# Builds both images locally from src/ instead of pulling from GHCR. Mounts the
+# example topology so the init container provisions a full demo (vhost, users,
+# exchanges, queues, bindings, policies) on first start.
+#
+# Access:
+#   - AMQP        amqp://localhost:${PORT_AMQP:-5672}
+#   - AMQPS       amqps://localhost:${PORT_AMQPS:-5671}   (self-signed)
+#   - Management  http://localhost:${PORT_MANAGEMENT:-15672}
+#   - Prometheus  http://localhost:${PORT_PROMETHEUS:-15692}/metrics
+# =============================================================================
+
+
+### Service Templates ###
+x-rabbitmq-common: &rabbitmq-common
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "3"
+  hostname: ${RABBITMQ_NODE_HOSTNAME:-rabbitmq}
+  mem_limit: ${RABBITMQ_MEM_LIMIT:-2g}
+  environment:
+    - TZ=${TIME_ZONE:-Etc/UTC}
+    # Bootstrap admin (defining a default user means 'guest' is never created)
+    - RABBITMQ_DEFAULT_USER=${RABBITMQ_ADMIN_USER:-admin}
+    - RABBITMQ_DEFAULT_PASS=${RABBITMQ_ADMIN_PASSWORD:-admin}
+    - RABBITMQ_DEFAULT_VHOST=/
+    - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE:-dev-cookie}
+    # TLS (self-signed by default; see docs/tls-and-certificates.md)
+    - RABBITMQ_TLS_MODE=${RABBITMQ_TLS_MODE:-selfsigned}
+    - RABBITMQ_TLS_CN=${AMQP_HOSTNAME:-${RABBITMQ_NODE_HOSTNAME:-rabbitmq}}
+    - RABBITMQ_TLS_MANAGED_WAIT=${RABBITMQ_TLS_MANAGED_WAIT:-0}
+    - RABBITMQ_SSL_VERIFY=${RABBITMQ_SSL_VERIFY:-verify_none}
+    - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=${RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT:-false}
+    # Tuning (sizing presets — see .env.example)
+    - RABBITMQ_LOG_LEVEL=${RABBITMQ_LOG_LEVEL:-info}
+    - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=${RABBITMQ_VM_MEMORY_HIGH_WATERMARK:-0.4}
+    - RABBITMQ_DISK_FREE_LIMIT=${RABBITMQ_DISK_FREE_LIMIT:-2GB}
+    - RABBITMQ_CHANNEL_MAX=${RABBITMQ_CHANNEL_MAX:-2048}
+    - RABBITMQ_FRAME_MAX=${RABBITMQ_FRAME_MAX:-131072}
+    - RABBITMQ_MAX_MESSAGE_SIZE=${RABBITMQ_MAX_MESSAGE_SIZE:-134217728}
+    - RABBITMQ_HEARTBEAT=${RABBITMQ_HEARTBEAT:-60}
+    - RABBITMQ_CONSUMER_TIMEOUT=${RABBITMQ_CONSUMER_TIMEOUT:-1800000}
+    - RABBITMQ_DEFAULT_QUEUE_TYPE=${RABBITMQ_DEFAULT_QUEUE_TYPE:-quorum}
+    # Optional protocols (off by default)
+    - RABBITMQ_ENABLE_MQTT=${RABBITMQ_ENABLE_MQTT:-false}
+    - RABBITMQ_ENABLE_WEB_MQTT=${RABBITMQ_ENABLE_WEB_MQTT:-false}
+    - RABBITMQ_ENABLE_STOMP=${RABBITMQ_ENABLE_STOMP:-false}
+    - RABBITMQ_ENABLE_WEB_STOMP=${RABBITMQ_ENABLE_WEB_STOMP:-false}
+  healthcheck:
+    test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+    interval: 15s
+    timeout: 10s
+    retries: 8
+    start_period: 45s
+
+x-init-environment: &init-environment
+  - TZ=${TIME_ZONE:-Etc/UTC}
+  - RABBITMQ_MGMT_URL=http://rabbitmq:15672
+  - RABBITMQ_ADMIN_USER=${RABBITMQ_ADMIN_USER:-admin}
+  - RABBITMQ_ADMIN_PASSWORD=${RABBITMQ_ADMIN_PASSWORD:-admin}
+  - RABBITMQ_WAIT_TIMEOUT=${RABBITMQ_WAIT_TIMEOUT:-60}
+  # Pass-throughs referenced by config/rabbitmq-init.example.json
+  - APP_USER=${APP_USER:-app}
+  - APP_PASSWORD=${APP_PASSWORD:-app}
+  - MONITORING_USER=${MONITORING_USER:-metrics}
+  - MONITORING_PASSWORD=${MONITORING_PASSWORD:-metrics}
+
+
+services:
+### Message Broker ###
+  rabbitmq:
+    <<: *rabbitmq-common
+    build:
+      context: ./src/rabbitmq
+      args:
+        RABBITMQ_REPOSITORY: ${RABBITMQ_REPOSITORY:-rabbitmq}
+        RABBITMQ_VERSION: ${RABBITMQ_VERSION:-4.3.1-management}
+    container_name: ${STACK_NAME:-rabbitmq}_SERVER
+    ports:
+      - "${PORT_AMQP:-5672}:5672"
+      - "${PORT_AMQPS:-5671}:5671"
+      - "${PORT_MANAGEMENT:-15672}:15672"
+      - "${PORT_PROMETHEUS:-15692}:15692"
+      # Optional protocols — enable via RABBITMQ_ENABLE_* and uncomment:
+      #- "${PORT_MQTT:-1883}:1883"
+      #- "${PORT_MQTTS:-8883}:8883"
+      #- "${PORT_STOMP:-61613}:61613"
+      #- "${PORT_WEB_MQTT:-15675}:15675"
+      #- "${PORT_WEB_STOMP:-15674}:15674"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-certs:/etc/rabbitmq/certs
+    networks:
+      local:
+
+### Initialization (runs on every start, idempotent) ###
+  rabbitmq-init:
+    build:
+      context: ./src/rabbitmq-init
+    container_name: ${STACK_NAME:-rabbitmq}_INIT
+    restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    environment: *init-environment
+    volumes:
+      - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.example.json}:/app/config/init.json:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      local:
+
+
+### Volumes ###
+volumes:
+  rabbitmq-data:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-data
+  rabbitmq-certs:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-certs
+
+
+### Networks ###
+networks:
+  local:
+    driver: bridge
+    name: ${STACK_NAME:-rabbitmq}
+    enable_ipv6: true

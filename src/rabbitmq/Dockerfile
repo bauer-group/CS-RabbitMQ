@@ -15,8 +15,10 @@
 # ---------------------------------------------------------------------------
 # Build Arguments
 # ---------------------------------------------------------------------------
+# Floating tag: tracks the latest RabbitMQ 4.x (major pinned to avoid a breaking
+# jump to 5.x). The base-image monitor rebuilds when this tag's digest moves.
 ARG RABBITMQ_REPOSITORY=rabbitmq
-ARG RABBITMQ_VERSION=4.3.1-management
+ARG RABBITMQ_VERSION=4-management
 
 # ---------------------------------------------------------------------------
 # Base Image

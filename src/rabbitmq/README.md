@@ -1,7 +1,8 @@
 # RabbitMQ Server Image
 
 A thin, professional wrapper around the official `rabbitmq:*-management` image
-([Docker Hub](https://hub.docker.com/_/rabbitmq)) — pinned to **RabbitMQ 4.3.1**.
+([Docker Hub](https://hub.docker.com/_/rabbitmq)) — tracking the floating
+**`4-management`** tag (latest RabbitMQ 4.x; major pinned to avoid a 5.x jump).
 
 It keeps the upstream image intact and layers on three concerns that the old
 BAUER GROUP broker did by hand:
@@ -52,7 +53,7 @@ In every mode the entrypoint guarantees `ca.pem` exists and `chmod 600`s the key
 
 ```bash
 docker build \
-  --build-arg RABBITMQ_VERSION=4.3.1-management \
+  --build-arg RABBITMQ_VERSION=4-management \
   -t ghcr.io/bauer-group/cs-rabbitmq/rabbitmq:local .
 ```
 

@@ -1,8 +1,11 @@
 # RabbitMQ Message Broker
 
-Production-ready [RabbitMQ](https://www.rabbitmq.com/) **4.3.1** message broker with
+Production-ready [RabbitMQ](https://www.rabbitmq.com/) **4** message broker with
 declarative JSON-based provisioning (Infrastructure-as-Code), layered TLS,
 Prometheus metrics, and full CI/CD automation.
+
+Tracks the floating `4-management` image tag — always the latest RabbitMQ 4.x,
+with the major pinned to avoid a breaking jump to 5.x.
 
 A thin, professional wrapper around the official `rabbitmq:*-management` image plus
 a Python init sidecar that provisions your entire topology — vhosts, users,
@@ -10,7 +13,7 @@ permissions, exchanges, queues, bindings, policies, shovels — from a single JS
 
 ## Features
 
-- **Modern broker** — RabbitMQ 4.3.1, **quorum queues by default** (HA-ready;
+- **Modern broker** — RabbitMQ 4.x (floating `4-management`), **quorum queues by default** (HA-ready;
   classic mirrored queues were removed in 4.0). AMQP 0-9-1 + AMQP 1.0 core.
 - **Declarative provisioning (IaC)** — an idempotent init container applies your
   topology from JSON on every start, via the Management HTTP API:

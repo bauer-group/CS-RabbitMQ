@@ -81,7 +81,7 @@ services:
       context: ./src/rabbitmq
       args:
         RABBITMQ_REPOSITORY: ${RABBITMQ_REPOSITORY:-rabbitmq}
-        RABBITMQ_VERSION: ${RABBITMQ_VERSION:-4.3.1-management}
+        RABBITMQ_VERSION: ${RABBITMQ_VERSION:-4-management}
     container_name: ${STACK_NAME:-rabbitmq}_SERVER
     ports:
       - "${PORT_AMQP:-5672}:5672"

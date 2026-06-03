@@ -46,7 +46,8 @@ A runnable, annotated example lives at
 {
   "vhosts": [...], "users": [...], "permissions": [...], "topic_permissions": [...],
   "exchanges": [...], "queues": [...], "bindings": [...],
-  "policies": [...], "operator_policies": [...], "parameters": [...], "global_parameters": [...]
+  "policies": [...], "operator_policies": [...], "parameters": [...], "global_parameters": [...],
+  "vhost_limits": [...], "user_limits": [...]
 }
 ```
 
@@ -65,6 +66,7 @@ environment; missing → hard error), and `_`-prefixed keys are treated as comme
 | 06 | Bindings | `bindings` | `GET` list → `POST /api/bindings/...` (only if no match) |
 | 07 | Policies | `policies`, `operator_policies` | `PUT /api/policies/...`, `PUT /api/operator-policies/...` |
 | 08 | Parameters | `parameters`, `global_parameters` | `PUT /api/parameters/...`, `PUT /api/global-parameters/...` |
+| 09 | Limits | `vhost_limits`, `user_limits` | `PUT /api/vhost-limits/...`, `PUT /api/user-limits/...` |
 
 > **RabbitMQ 4.x note:** classic mirrored queues (`ha-mode` policies) were removed
 > in 4.0. Use **quorum queues** (the default here) or **streams** for HA. The

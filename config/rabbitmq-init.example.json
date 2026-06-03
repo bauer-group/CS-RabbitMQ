@@ -132,5 +132,19 @@
       "name": "cluster_name",
       "value": "eu-central1-broker-bauer-group-com"
     }
+  ],
+
+  "vhost_limits": [
+    {
+      "vhost": "applications",
+      "limits": { "max-connections": 1000, "max-queues": 500 }
+    }
+  ],
+
+  "user_limits": [
+    {
+      "user": "${APP_USER}",
+      "limits": { "max-connections": 100, "max-channels": 200 }
+    }
   ]
 }

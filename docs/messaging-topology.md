@@ -20,7 +20,8 @@ defaults, and allowed values.
 - Block reference: [vhosts](#vhosts) · [users](#users) · [permissions](#permissions) ·
   [topic_permissions](#topic_permissions) · [exchanges](#exchanges) · [queues](#queues) ·
   [bindings](#bindings) · [policies](#policies) · [operator_policies](#operator_policies) ·
-  [parameters](#parameters) · [global_parameters](#global_parameters)
+  [parameters](#parameters) · [global_parameters](#global_parameters) ·
+  [vhost_limits](#vhost_limits) · [user_limits](#user_limits)
 - Reference tables: [queue arguments](#reference-common-queue-arguments) ·
   [policy definition](#reference-common-policy-definition-keys) · [user tags](#reference-user-tags)
 - [Generating a `password_hash`](#generating-a-password_hash)
@@ -44,7 +45,7 @@ Two files are processed in order, each independently through all tasks:
 Tasks run in this fixed order (later tasks can depend on earlier ones, e.g.
 bindings need their exchange/queue to exist first):
 
-`vhosts → users → permissions → exchanges → queues → bindings → policies → parameters`
+`vhosts → users → permissions → exchanges → queues → bindings → policies → parameters → limits`
 
 Before any of that, the init container performs **security hardening**: it
 deletes the default `guest` user (`DELETE /api/users/guest`, idempotent).
@@ -124,7 +125,9 @@ every task and skipped during `${VAR}` resolution (so it may contain literal
   "policies":          [ /* ... */ ],
   "operator_policies": [ /* ... */ ],
   "parameters":        [ /* ... */ ],
-  "global_parameters": [ /* ... */ ]
+  "global_parameters": [ /* ... */ ],
+  "vhost_limits":      [ /* ... */ ],
+  "user_limits":       [ /* ... */ ]
 }
 ```
 
@@ -320,6 +323,41 @@ Cluster-wide named values. `PUT /api/global-parameters/{name}`.
 | --- | --- | --- | --- |
 | `name` | string | ✅ | e.g. `cluster_name`, `internal_cluster_id` |
 | `value` | string \| number \| object | ✅ | Type depends on the parameter |
+
+## vhost_limits
+
+Per-vhost guardrails (Management UI: Admin → Limits).
+`PUT /api/vhost-limits/{vhost}/{name}`.
+
+```json
+{ "vhost": "applications", "limits": { "max-connections": 1000, "max-queues": 500 } }
+```
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `vhost` | string | ✅ | Target vhost |
+| `limits` | object | ✅ | Map of limit name → integer |
+
+Limit names: `max-connections` (cap concurrent connections to the vhost),
+`max-queues` (cap total queues in the vhost). `-1` or omitting a name removes
+the cap.
+
+## user_limits
+
+Per-user guardrails (Management UI: Admin → Limits).
+`PUT /api/user-limits/{user}/{name}`.
+
+```json
+{ "user": "${APP_USER}", "limits": { "max-connections": 100, "max-channels": 200 } }
+```
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `user` | string | ✅ | Target user |
+| `limits` | object | ✅ | Map of limit name → integer |
+
+Limit names: `max-connections` (cap concurrent connections opened by the user),
+`max-channels` (cap total channels across the user's connections).
 
 ---
 

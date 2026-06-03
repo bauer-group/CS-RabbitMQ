@@ -100,10 +100,12 @@ class RabbitMQClient:
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
         self.session.auth = (user, password)
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        })
+        # NO default "Accept: application/json": RabbitMQ's vhost-limits /
+        # user-limits PUT endpoints do strict content negotiation and return 406
+        # to a client that demands application/json for their 204 (no-content)
+        # response. requests' default Accept (*/*) works everywhere, and GET
+        # responses are JSON regardless.
+        self.session.headers.update({"Content-Type": "application/json"})
 
     # -- low level --
     def request(self, method: str, path: str, **kwargs) -> requests.Response:

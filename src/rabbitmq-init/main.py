@@ -25,7 +25,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 
-from rmq import RabbitMQClient, resolve_config_values
+from rmq import RabbitMQClient, error_text, resolve_config_values
 
 console = Console()
 
@@ -40,6 +40,27 @@ def get_broker_config() -> dict:
         "user": os.environ.get("RABBITMQ_ADMIN_USER", "admin"),
         "password": os.environ.get("RABBITMQ_ADMIN_PASSWORD", ""),
     }
+
+
+def harden_security(client: RabbitMQClient) -> None:
+    """Actively ensure the default 'guest' user never exists.
+
+    Defense-in-depth alongside RABBITMQ_DEFAULT_USER (prevents creation) and
+    loopback_users.guest=true (restricts it to loopback). Idempotent: a 404
+    simply means it was already absent. Best-effort — never fails the run.
+    """
+    try:
+        resp = client.delete("/api/users/guest")
+    except Exception as e:  # noqa: BLE001
+        console.print(f"[yellow]Security: could not check 'guest' user: {e}[/]")
+        return
+
+    if resp.status_code in (200, 204):
+        console.print("[green]Security: removed default 'guest' user[/]")
+    elif resp.status_code == 404:
+        console.print("[dim]Security: 'guest' user not present (good)[/]")
+    else:
+        console.print(f"[yellow]Security: could not remove 'guest': {error_text(resp)}[/]")
 
 
 def wait_for_rabbitmq(client: RabbitMQClient, timeout: int = 60) -> bool:
@@ -185,6 +206,10 @@ def main() -> int:
     timeout = int(os.environ.get("RABBITMQ_WAIT_TIMEOUT", "60"))
     if not wait_for_rabbitmq(client, timeout):
         return 1
+    console.print()
+
+    # Security hardening before provisioning anything.
+    harden_security(client)
     console.print()
 
     tasks = discover_tasks()

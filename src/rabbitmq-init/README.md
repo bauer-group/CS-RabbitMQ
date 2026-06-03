@@ -22,6 +22,14 @@ conflict when the same resource appears in both. JSON string values support
 `${VAR_NAME}` placeholders, resolved from the environment (missing var → hard
 error, so secrets are never silently blanked).
 
+## Security hardening
+
+Before processing any config, the init container **actively deletes the default
+`guest` user** (`DELETE /api/users/guest`, idempotent — a 404 just means it was
+already gone). This is defense-in-depth: the server image already prevents
+`guest` from being created (a default user is defined) and restricts it to
+loopback in config, but the init container guarantees it is removed on every run.
+
 ## JSON configuration schema
 
 ```jsonc

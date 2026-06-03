@@ -1,3 +1,9 @@
+## [0.1.2](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.1...v0.1.2) (2026-06-03)
+
+### ♻️ Refactoring
+
+* **rabbitmq:** streamlined healthcheck to standard retries/interval ([02545f5](https://github.com/bauer-group/CS-RabbitMQ/commit/02545f5fbd2ab4bdeec9a66f37359cc65f7b75c3))
+
 ## [0.1.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.0...v0.1.1) (2026-06-03)
 
 ### 🐛 Bug Fixes

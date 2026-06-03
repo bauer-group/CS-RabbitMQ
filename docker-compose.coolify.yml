@@ -52,7 +52,7 @@ services:
       - RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT=${RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT:-false}
       # Tuning (sizing presets — see .env.example)
       - RABBITMQ_LOG_LEVEL=${RABBITMQ_LOG_LEVEL:-info}
-      - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=${RABBITMQ_VM_MEMORY_HIGH_WATERMARK:-0.4}
+      - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=${RABBITMQ_VM_MEMORY_HIGH_WATERMARK:-1600MB}
       - RABBITMQ_DISK_FREE_LIMIT=${RABBITMQ_DISK_FREE_LIMIT:-2GB}
       - RABBITMQ_CHANNEL_MAX=${RABBITMQ_CHANNEL_MAX:-2048}
       - RABBITMQ_FRAME_MAX=${RABBITMQ_FRAME_MAX:-131072}
@@ -96,7 +96,7 @@ services:
       - RABBITMQ_MGMT_URL=http://rabbitmq:15672
       - RABBITMQ_ADMIN_USER=${RABBITMQ_ADMIN_USER:-admin}
       - RABBITMQ_ADMIN_PASSWORD=${RABBITMQ_ADMIN_PASSWORD}
-      - RABBITMQ_WAIT_TIMEOUT=${RABBITMQ_WAIT_TIMEOUT:-60}
+      - RABBITMQ_WAIT_TIMEOUT=${RABBITMQ_WAIT_TIMEOUT:-120}
       - APP_USER=${APP_USER:-app}
       - APP_PASSWORD=${APP_PASSWORD:-app}
       - MONITORING_USER=${MONITORING_USER:-metrics}
@@ -105,9 +105,13 @@ services:
     # it (Coolify: add a file mount to /app/config/init.json), then uncomment:
     #volumes:
     #  - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.json}:/app/config/init.json:ro
+    # service_started (not service_healthy): the init runs its own readiness
+    # poll (wait_for_rabbitmq), so it starts with the broker container and waits
+    # internally — a long cold boot (cert-gen + quorum init) can't abort it via
+    # the compose health gate. The broker healthcheck still serves humans/monitoring.
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
 
 
 ### Volumes ###

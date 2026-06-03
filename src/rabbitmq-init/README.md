@@ -81,7 +81,7 @@ environment; missing → hard error), and `_`-prefixed keys are treated as comme
 | `RABBITMQ_ADMIN_USER` | `admin` | Admin user (Management API auth) |
 | `RABBITMQ_ADMIN_PASSWORD` | *(required)* | Admin password |
 | `RABBITMQ_INIT_CONFIG` | `/app/config/init.json` | Path to user JSON config |
-| `RABBITMQ_WAIT_TIMEOUT` | `60` | Seconds to wait for the Management API |
+| `RABBITMQ_WAIT_TIMEOUT` | `120` | Seconds to poll for the Management API (init starts via `service_started` and waits internally) |
 
 Plus any `${VAR}` referenced by your config JSON (e.g. `APP_PASSWORD`).
 

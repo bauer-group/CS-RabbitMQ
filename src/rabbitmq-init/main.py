@@ -63,8 +63,14 @@ def harden_security(client: RabbitMQClient) -> None:
         console.print(f"[yellow]Security: could not remove 'guest': {error_text(resp)}[/]")
 
 
-def wait_for_rabbitmq(client: RabbitMQClient, timeout: int = 60) -> bool:
-    """Wait for the broker Management API to become available and unalarmed."""
+def wait_for_rabbitmq(client: RabbitMQClient, timeout: int = 120) -> bool:
+    """Wait for the broker Management API to become available and unalarmed.
+
+    The init container is gated on `service_started` (not `service_healthy`),
+    so it may start before the broker's API is up — this poll is the real
+    readiness check. Connection errors and a transient 401 (the default admin
+    user may still be getting created mid-boot) are retried until timeout.
+    """
     console.print("[dim]Waiting for RabbitMQ Management API...[/]")
 
     start_time = time.time()
@@ -79,10 +85,13 @@ def wait_for_rabbitmq(client: RabbitMQClient, timeout: int = 60) -> bool:
                 client.get("/api/health/checks/alarms")
                 console.print("[green]RabbitMQ Management API is ready[/]")
                 return True
+            # A 401 can appear briefly during boot, before the default admin
+            # user exists — keep retrying. A persistent 401 (wrong credentials)
+            # surfaces at timeout with this message.
             if resp.status_code == 401:
                 last_error = "authentication failed (check RABBITMQ_ADMIN_USER/PASSWORD)"
-                break
-            last_error = f"HTTP {resp.status_code}"
+            else:
+                last_error = f"HTTP {resp.status_code}"
         except Exception as e:  # noqa: BLE001 - connection refused while booting
             last_error = str(e)
         time.sleep(2)
@@ -203,7 +212,7 @@ def main() -> int:
 
     client = RabbitMQClient(cfg["mgmt_url"], cfg["user"], cfg["password"])
 
-    timeout = int(os.environ.get("RABBITMQ_WAIT_TIMEOUT", "60"))
+    timeout = int(os.environ.get("RABBITMQ_WAIT_TIMEOUT", "120"))
     if not wait_for_rabbitmq(client, timeout):
         return 1
     console.print()

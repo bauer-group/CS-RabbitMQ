@@ -1,3 +1,11 @@
+## [0.1.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.0...v0.1.1) (2026-06-03)
+
+### 🐛 Bug Fixes
+
+* **ci:** stopped monitoring own images in the base-image monitor ([dbf6451](https://github.com/bauer-group/CS-RabbitMQ/commit/dbf645145736582adae3b47521093931eeb72ad6))
+* **rabbitmq-init:** actively remove the default guest user ([2e531d0](https://github.com/bauer-group/CS-RabbitMQ/commit/2e531d01fa4a6833229cde60ee29fc691d71035d))
+* **rabbitmq:** bounded memory at the application level, not via a hard cap ([e2c617c](https://github.com/bauer-group/CS-RabbitMQ/commit/e2c617c0189070b1d31ba2ffb1076dac03d8057d))
+
 ## [0.1.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.0.0...v0.1.0) (2026-06-03)
 
 ### 🚀 Features

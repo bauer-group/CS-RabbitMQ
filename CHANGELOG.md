@@ -1,3 +1,9 @@
+## [0.2.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.2...v0.2.0) (2026-06-03)
+
+### 🚀 Features
+
+* **rabbitmq-init:** added vhost & user limits provisioning ([60d8881](https://github.com/bauer-group/CS-RabbitMQ/commit/60d88810e9e9ad76ff385c8d511ab1b6ee1c9436))
+
 ## [0.1.2](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.1.1...v0.1.2) (2026-06-03)
 
 ### ♻️ Refactoring

@@ -1,3 +1,9 @@
+## [0.4.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.0...v0.4.1) (2026-06-04)
+
+### ♻️ Refactoring
+
+* **rabbitmq:** sizing presets keyed on real drivers; small watermark 2GB ([72a2dee](https://github.com/bauer-group/CS-RabbitMQ/commit/72a2deeec2bd6d79fc5de32cea1a7e762d10ba67))
+
 ## [0.4.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.2...v0.4.0) (2026-06-04)
 
 ### 🚀 Features

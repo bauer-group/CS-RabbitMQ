@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.2.1...v0.3.0) (2026-06-04)
+
+### 🚀 Features
+
+* **init:** runtime-editable config volume + shipped demo topology ([229db1e](https://github.com/bauer-group/CS-RabbitMQ/commit/229db1ef3ddb6a6e9b7458c683058ee873cdbb12))
+
 ## [0.2.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.2.0...v0.2.1) (2026-06-03)
 
 ### 🐛 Bug Fixes

@@ -1,3 +1,5 @@
+## [0.3.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.0...v0.3.1) (2026-06-04)
+
 ## [0.3.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.2.1...v0.3.0) (2026-06-04)
 
 ### 🚀 Features

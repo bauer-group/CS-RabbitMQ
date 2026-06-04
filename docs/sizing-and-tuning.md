@@ -1,19 +1,25 @@
 # Sizing & Tuning
 
 The broker is sized entirely from `.env`. Three presets — **small** (default),
-**medium**, **large** — are documented as tables in `.env.example` and mapped to
-the knobs below. Pick by your steady-state **messages/day** and **concurrent
-connections**, then copy that column's values.
+**medium**, **large** — are documented as a table in `.env.example` and mapped to
+the knobs below. RabbitMQ RAM is driven by **connections, queues, and backlog**
+(unconsumed messages) plus message size — *not* by raw throughput. A single node
+sustains thousands to tens of thousands of msg/s, so size by those real drivers,
+not by a daily message count (and remember: a 1-minute burst can dwarf the 24h
+total — peak rate matters more than the average).
 
 ## Presets
 
-| Profile | Messages/day | Concurrent conn | `VM_MEMORY_HIGH_WATERMARK` | `DISK_FREE_LIMIT` | `CHANNEL_MAX` | Host RAM |
+| Profile | Conns | Queues | Peak backlog | `VM_MEMORY_HIGH_WATERMARK` | `DISK_FREE_LIMIT` | Host RAM |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Small** (default) | < 1 M | < 200 | `1600MB` | `2GB` | `2048` | 2–4 GB |
-| **Medium** | 1 M – 50 M | 200 – 2 000 | `3GB` | `4GB` | `4096` | 6–8 GB |
-| **Large** | 50 M – 500 M+ | 2 000 – 10 000+ | `6GB` | `8GB` | `8192` | 12–16 GB |
+| **Small** (default) | < 200 | < 100 | < 100k msgs | `2GB` | `2GB` | 4 GB |
+| **Medium** | 200–2 000 | 100–1k | < 1M msgs | `4GB` | `8GB` | 8–12 GB |
+| **Large** | 2k–10k+ | 1k–5k | < 10M msgs | `8GB` | `16GB` | 16–32 GB |
 
-Beyond large on a single node, scale horizontally — see [clustering.md](clustering.md).
+`CHANNEL_MAX` is fixed at `2048` across all sizes — it's a per-connection leak
+guard (default 2047), **not** a scaling lever. For 10k+ connections also raise
+the host file-descriptor limit (`ulimit -n`). Beyond large on a single node,
+scale horizontally — see [clustering.md](clustering.md).
 
 ## How the knobs work
 
@@ -25,7 +31,7 @@ up — a graceful, application-level guard.
 
 ```
 vm_memory_high_watermark.absolute = RABBITMQ_VM_MEMORY_HIGH_WATERMARK
-# small default: 1600MB
+# small default: 2GB (~40–50% of the 4 GB host target)
 ```
 
 **There is deliberately no Docker `mem_limit`.** A hard cgroup cap makes Docker

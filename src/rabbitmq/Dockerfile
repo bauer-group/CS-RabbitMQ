@@ -76,7 +76,7 @@ RUN chmod a+rx /usr/local/bin/docker-entrypoint-custom.sh
 # ---------------------------------------------------------------------------
 ENV RABBITMQ_TLS_MODE=selfsigned \
     RABBITMQ_LOG_LEVEL=info \
-    RABBITMQ_VM_MEMORY_HIGH_WATERMARK=1600MB \
+    RABBITMQ_VM_MEMORY_HIGH_WATERMARK=2GB \
     RABBITMQ_DISK_FREE_LIMIT=2GB \
     RABBITMQ_CHANNEL_MAX=2048 \
     RABBITMQ_FRAME_MAX=131072 \

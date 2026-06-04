@@ -21,8 +21,9 @@ permissions, exchanges, queues, bindings, policies, shovels — from a single JS
   - **Exchanges**, **queues** (quorum/classic/stream), **bindings** (dedup-checked)
   - **Policies**, **operator policies**, **shovel/federation parameters**
   - `${ENV_VAR}` resolution keeps secrets out of config files; additive & idempotent
-- **Sizing presets** — small / medium / large tuning, documented as tables in
-  `.env.example`, keyed by messages/day + concurrent connections. **Default: small.**
+- **Sizing presets** — small / medium / large tuning, documented as a table in
+  `.env.example`, keyed by the real RAM drivers (connections, queues, backlog).
+  **Default: small.**
 - **Layered TLS** — self-signed (zero-config) → managed Let's Encrypt (certs-dumper
   sidecar) → bring-your-own. AMQPS on 5671; the web UI gets HTTPS via Traefik/Coolify.
 - **Plugins** — Management, Prometheus, Shovel, Federation on by default;

@@ -6,7 +6,7 @@ vertical sizing (see [sizing-and-tuning.md](sizing-and-tuning.md)). It is built
 
 ## Why single-node is the default
 
-- Most workloads (even tens of millions of messages/day) run comfortably on one
+- Most workloads (even hundreds of millions of messages/day) run comfortably on one
   well-sized node.
 - A cluster adds real operational cost: an odd node count, network partition
   handling, rolling-upgrade discipline, and shared quorum/Erlang-cookie config.

@@ -34,14 +34,14 @@ defaults, and allowed values.
 
 ## How the config is loaded
 
-Two files are processed in order, each independently through all tasks:
+The init applies **your topology** from `/config/init.json`. On a fresh volume
+this is **seeded with the demo** on first boot (see below), then editable at
+runtime.
 
-1. **Built-in default** — `src/rabbitmq-init/config/default.json`, baked into the
-   image. Ensures the `/` vhost defaults to quorum queues and reinforces full
-   admin permissions for `${RABBITMQ_ADMIN_USER}`. Always runs.
-2. **Your topology** — read from `/config/init.json` (optional). Everything else
-   lives here. On a fresh volume this is **seeded with the demo** on first boot
-   (see below), then editable at runtime.
+> The broker itself already creates the `/` vhost (with the broker-wide
+> `default_queue_type`) and grants the admin full permissions on it, so the init
+> ships **no** baked default config — there's nothing for it to add. (An optional
+> `/app/config/default.json` hook remains for forward flexibility but is empty.)
 
 Tasks run in this fixed order (later tasks can depend on earlier ones, e.g.
 bindings need their exchange/queue to exist first):

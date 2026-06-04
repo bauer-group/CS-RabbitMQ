@@ -1,8 +1,0 @@
-{
-  "vhosts": [
-    { "name": "/", "default_queue_type": "quorum", "description": "Default virtual host" }
-  ],
-  "permissions": [
-    { "vhost": "/", "user": "${RABBITMQ_ADMIN_USER}", "configure": ".*", "write": ".*", "read": ".*" }
-  ]
-}

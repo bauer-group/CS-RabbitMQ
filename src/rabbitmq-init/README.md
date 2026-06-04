@@ -9,18 +9,17 @@ the Management API speaks REST and `PUT` is idempotent by contract.
 
 ## Configuration loading
 
-Two config files are processed in order:
+The init applies your **user config**, read from `/config/init.json` (override
+with `RABBITMQ_INIT_CONFIG`). In development this is a repo bind-mount; in
+production it lives on a named volume and is **seeded** with the baked demo
+(`/app/config/seed.json`) on first boot if absent, then editable at runtime.
 
-1. **Built-in default** (`/app/config/default.json`, baked in) — ensures the
-   `/` vhost defaults to quorum queues and reinforces full admin permissions
-   for `${RABBITMQ_ADMIN_USER}`.
-2. **User config** (optional) — read from `/config/init.json` (override with
-   `RABBITMQ_INIT_CONFIG`). In development this is a repo bind-mount; in
-   production it lives on a named volume and is **seeded** with the baked demo
-   (`/app/config/seed.json`) on first boot if absent, then editable at runtime.
+> No baked **default** config ships: the broker already auto-creates the `/`
+> vhost (with the broker-wide `default_queue_type`) and grants the admin full
+> permissions on it. An optional `/app/config/default.json` hook remains but is
+> empty by default.
 
-Both are processed independently through every task. Idempotency means no
-conflict when the same resource appears in both. JSON string values support
+JSON string values support
 `${VAR_NAME}` placeholders, resolved from the environment (missing var → hard
 error, so secrets are never silently blanked).
 

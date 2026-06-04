@@ -2,15 +2,18 @@
 """
 RabbitMQ Init - Declarative Message Broker Provisioning
 
-Reads JSON configuration files and applies them to a RabbitMQ broker via the
+Reads a JSON topology file and applies it to a RabbitMQ broker via the
 Management HTTP API. Designed to be idempotent - safe to run on every
 container start (Management API PUTs converge to the declared state).
 
-Configuration loading order:
-  1. Built-in default (/app/config/default.json) - always processed
-  2. User config - optional, loaded from:
-     a) RABBITMQ_INIT_CONFIG env var (if set and file exists)
-     b) /app/config/init.json (fallback, if mounted)
+Config sources, processed in order:
+  1. Built-in default (/app/config/default.json) - OPTIONAL. The broker already
+     auto-creates the '/' vhost (with the broker-wide default_queue_type) and
+     grants the admin full permissions on it, so no baked default ships; this
+     hook simply does nothing when the file is absent.
+  2. User topology - /config/init.json (override with RABBITMQ_INIT_CONFIG).
+     A volume mount in production (seeded with the demo on first boot) or a
+     repo bind-mount in development.
 
 JSON values may contain ${ENV_VAR} placeholders for secret injection.
 """
@@ -135,11 +138,11 @@ def discover_configs() -> list[tuple[str, dict]]:
     """Discover and load configuration files in order (default, then user)."""
     configs = []
 
+    # Optional baked default. None ships (the broker auto-creates the '/' vhost
+    # and admin permissions), but the hook stays for forward flexibility.
     default = load_config(DEFAULT_CONFIG)
     if default:
         configs.append(("default", default))
-    else:
-        console.print(f"[yellow]Warning: Built-in default not found: {DEFAULT_CONFIG}[/]")
 
     user_config_path = os.environ.get("RABBITMQ_INIT_CONFIG", FALLBACK_USER_CONFIG)
     seed_user_config(user_config_path)

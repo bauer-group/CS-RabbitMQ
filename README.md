@@ -86,10 +86,10 @@ permissions, exchanges, queues, bindings, policies, shovels — from a single JS
 │   │      rabbitmq       │◄───────│      rabbitmq-init       │  │
 │   │  (custom image)     │  HTTP  │      (one-shot)          │  │
 │   │                     │  API   │                          │  │
-│   │  AMQP   :5672       │        │  Reads default.json +    │  │
-│   │  AMQPS  :5671       │        │  your topology JSON and  │  │
-│   │  Mgmt   :15672      │        │  PUTs vhosts/users/      │  │
-│   │  Prom   :15692      │        │  queues/exchanges/...    │  │
+│   │  AMQP   :5672       │        │  Reads /config/init.json │  │
+│   │  AMQPS  :5671       │        │  (volume/seed) and PUTs  │  │
+│   │  Mgmt   :15672      │        │  vhosts/users/queues/    │  │
+│   │  Prom   :15692      │        │  exchanges/policies/...  │  │
 │   │                     │        │  Idempotent on restart   │  │
 │   │  Quorum by default  │        └──────────────────────────┘  │
 │   │  Self-signed/LE TLS │                                       │

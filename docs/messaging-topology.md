@@ -521,5 +521,5 @@ parameter (deletion is manual — the init is additive only).
 | `Environment variable 'X' is not set` | A `${X}` in the JSON has no matching env var. Add it to the init container's `environment:` block. |
 | `authentication failed` | `RABBITMQ_ADMIN_USER`/`PASSWORD` don't match the broker. On an existing data volume the admin password is fixed at first boot — rotate with `rabbitmqctl change_password`. |
 | `RabbitMQ not ready after 60s` | Broker still booting. Raise `RABBITMQ_WAIT_TIMEOUT`, or the server is unhealthy — check its logs. |
-| `IsADirectoryError: /app/config/init.json` | `RABBITMQ_INIT_CONFIG` points at a non-existent file; Docker created a directory. Point it at a real file (or leave it unset). |
+| `IsADirectoryError: /config/init.json` | A bind-mount source didn't exist, so Docker created a *directory* at the mount target. Point the mount at a real file (production uses a named volume, which avoids this). |
 | Queue exists but settings differ | Most queue arguments are **immutable after creation** — delete and recreate, or apply mutable settings via a policy. |

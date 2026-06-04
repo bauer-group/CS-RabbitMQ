@@ -13,7 +13,7 @@ defaults, and allowed values.
 ## Contents
 
 - [How the config is loaded](#how-the-config-is-loaded)
-- [Mounting the config per deployment](#mounting-the-config-per-deployment)
+- [Where the config lives, per deployment](#where-the-config-lives-per-deployment)
 - [Environment-variable resolution (`${VAR}`)](#environment-variable-resolution-var)
 - [Comment keys (`_`-prefixed)](#comment-keys-_-prefixed)
 - [Top-level structure](#top-level-structure)
@@ -39,8 +39,9 @@ Two files are processed in order, each independently through all tasks:
 1. **Built-in default** — `src/rabbitmq-init/config/default.json`, baked into the
    image. Ensures the `/` vhost defaults to quorum queues and reinforces full
    admin permissions for `${RABBITMQ_ADMIN_USER}`. Always runs.
-2. **Your topology** — mounted at `/app/config/init.json` (optional). Everything
-   else lives here.
+2. **Your topology** — read from `/config/init.json` (optional). Everything else
+   lives here. On a fresh volume this is **seeded with the demo** on first boot
+   (see below), then editable at runtime.
 
 Tasks run in this fixed order (later tasks can depend on earlier ones, e.g.
 bindings need their exchange/queue to exist first):
@@ -50,25 +51,41 @@ bindings need their exchange/queue to exist first):
 Before any of that, the init container performs **security hardening**: it
 deletes the default `guest` user (`DELETE /api/users/guest`, idempotent).
 
-## Mounting the config per deployment
+## Where the config lives, per deployment
 
-| Deployment | How the config is mounted |
+The init always reads `/config/init.json`. How that file gets there differs:
+
+| Deployment | Source of `/config/init.json` |
 | --- | --- |
-| **development** | `config/rabbitmq-init.example.json` is mounted automatically — edit it or point `RABBITMQ_INIT_CONFIG` at your own file. |
-| **single / traefik / coolify** | Only the built-in default runs until you add a mount. Copy the example, set `RABBITMQ_INIT_CONFIG`, and uncomment the `volumes:` block in the compose file. |
+| **development** | Repo file `config/rabbitmq-init.json` is bind-mounted read-only — edit it in your IDE. Ships as the **demo**. Swap the mount to `config/rabbitmq-init.example.json` to exercise every feature. |
+| **single / traefik / coolify** | The **`rabbitmq-config` Docker volume** (not the repo). Empty on first boot → **seeded with the demo**, then editable at runtime. |
+
+### The demo (shipped default)
+
+`config/rabbitmq-init.json` creates a vhost `demo`, a quorum queue `demo`, and a
+user `demo` (whose password defaults to the admin password for zero-config
+convenience — change it for real workloads). Publish to the default exchange
+with routing key `demo` to reach the queue.
+
+### Editing the production config at runtime
+
+The config lives on the `rabbitmq-config` volume, so it survives restarts and can
+be changed without touching the repo or rebuilding:
 
 ```bash
-cp config/rabbitmq-init.example.json config/rabbitmq-init.json
-# edit config/rabbitmq-init.json, then in .env:
-#   RABBITMQ_INIT_CONFIG=./config/rabbitmq-init.json
-# and uncomment in the compose file:
-#   volumes:
-#     - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.json}:/app/config/init.json:ro
+# inspect / replace the live config
+docker cp <INIT_or_SERVER_container>:/config/init.json ./init.json
+docker cp ./my-topology.json <INIT_container>:/config/init.json
+docker compose up -d rabbitmq-init        # re-apply (idempotent)
 ```
 
-> ⚠️ Only set `RABBITMQ_INIT_CONFIG` to a path that **exists**. Docker silently
-> creates an empty *directory* at a missing bind-mount source, which breaks the
-> mount.
+In **Coolify**, edit `/config/init.json` via the volume's file browser, or
+override it with a **Coolify File Mount** to `/config/init.json` (content managed
+in the Coolify UI). To start from the full example, copy
+`config/rabbitmq-init.example.json` into the volume as `init.json`.
+
+> The seed only runs when `/config/init.json` is **absent**. Provide your own
+> file (even `{}`) to suppress the demo.
 
 ## Environment-variable resolution (`${VAR}`)
 

@@ -14,8 +14,10 @@ Two config files are processed in order:
 1. **Built-in default** (`/app/config/default.json`, baked in) — ensures the
    `/` vhost defaults to quorum queues and reinforces full admin permissions
    for `${RABBITMQ_ADMIN_USER}`.
-2. **User config** (optional) — loaded from `RABBITMQ_INIT_CONFIG` (if set and
-   present) or `/app/config/init.json` (fallback, if mounted).
+2. **User config** (optional) — read from `/config/init.json` (override with
+   `RABBITMQ_INIT_CONFIG`). In development this is a repo bind-mount; in
+   production it lives on a named volume and is **seeded** with the baked demo
+   (`/app/config/seed.json`) on first boot if absent, then editable at runtime.
 
 Both are processed independently through every task. Idempotency means no
 conflict when the same resource appears in both. JSON string values support
@@ -80,7 +82,7 @@ environment; missing → hard error), and `_`-prefixed keys are treated as comme
 | `RABBITMQ_MGMT_URL` | `http://rabbitmq:15672` | Management API base URL |
 | `RABBITMQ_ADMIN_USER` | `admin` | Admin user (Management API auth) |
 | `RABBITMQ_ADMIN_PASSWORD` | *(required)* | Admin password |
-| `RABBITMQ_INIT_CONFIG` | `/app/config/init.json` | Path to user JSON config |
+| `RABBITMQ_INIT_CONFIG` | `/config/init.json` | Path to user JSON config (volume in prod, bind-mount in dev) |
 | `RABBITMQ_WAIT_TIMEOUT` | `120` | Seconds to poll for the Management API (init starts via `service_started` and waits internally) |
 
 Plus any `${VAR}` referenced by your config JSON (e.g. `APP_PASSWORD`).

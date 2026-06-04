@@ -17,6 +17,7 @@ JSON values may contain ${ENV_VAR} placeholders for secret injection.
 
 import json
 import os
+import shutil
 import sys
 import time
 from importlib import import_module
@@ -30,7 +31,10 @@ from rmq import RabbitMQClient, error_text, resolve_config_values
 console = Console()
 
 DEFAULT_CONFIG = "/app/config/default.json"
-FALLBACK_USER_CONFIG = "/app/config/init.json"
+# User config lives on a mounted volume (prod) or a repo bind-mount (dev).
+FALLBACK_USER_CONFIG = "/config/init.json"
+# Baked demo template seeded into the user-config path on first boot if missing.
+SEED_CONFIG = "/app/config/seed.json"
 
 
 def get_broker_config() -> dict:
@@ -110,6 +114,23 @@ def load_config(config_path: str) -> dict | None:
     return resolve_config_values(raw_config)
 
 
+def seed_user_config(path: str) -> None:
+    """First-boot seeding: if the user config is missing and a baked seed
+    exists, copy it into place. On a writable volume this creates an editable
+    demo on first start; on a read-only bind mount (dev) it's a harmless no-op.
+    """
+    target = Path(path)
+    seed = Path(SEED_CONFIG)
+    if target.exists() or not seed.exists():
+        return
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(seed, target)
+        console.print(f"[green]Seeded demo config -> {path}[/]")
+    except OSError as e:
+        console.print(f"[yellow]Could not seed {path} (read-only mount?): {e}[/]")
+
+
 def discover_configs() -> list[tuple[str, dict]]:
     """Discover and load configuration files in order (default, then user)."""
     configs = []
@@ -121,6 +142,7 @@ def discover_configs() -> list[tuple[str, dict]]:
         console.print(f"[yellow]Warning: Built-in default not found: {DEFAULT_CONFIG}[/]")
 
     user_config_path = os.environ.get("RABBITMQ_INIT_CONFIG", FALLBACK_USER_CONFIG)
+    seed_user_config(user_config_path)
     if user_config_path != DEFAULT_CONFIG and Path(user_config_path).exists():
         user_config = load_config(user_config_path)
         if user_config:

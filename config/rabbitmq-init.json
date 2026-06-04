@@ -1,0 +1,19 @@
+{
+  "_comment": "Default DEMO topology, applied on first start. In development this repo file is bind-mounted; in production (single/traefik/coolify) it is seeded into the 'rabbitmq-config' Docker volume on first boot and can then be edited at runtime (e.g. via the Coolify file browser / a Coolify file mount). Full field reference: docs/messaging-topology.md. SECURITY: the demo user reuses the admin password (RABBITMQ_DEFAULT_PASS) for zero-config convenience — change the password or remove this user for real workloads.",
+
+  "vhosts": [
+    { "name": "demo", "default_queue_type": "quorum", "description": "Demo virtual host" }
+  ],
+
+  "users": [
+    { "name": "demo", "password": "${RABBITMQ_ADMIN_PASSWORD}", "tags": ["management"] }
+  ],
+
+  "permissions": [
+    { "vhost": "demo", "user": "demo", "configure": ".*", "write": ".*", "read": ".*" }
+  ],
+
+  "queues": [
+    { "vhost": "demo", "name": "demo", "type": "quorum" }
+  ]
+}

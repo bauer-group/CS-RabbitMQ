@@ -1,0 +1,19 @@
+{
+  "_comment": "Baked DEMO seed. Copied into the user-config volume (/config/init.json) on first boot when none exists, then editable at runtime. Keep in sync with the repo's config/rabbitmq-init.json. SECURITY: the demo user reuses the admin password for zero-config convenience — change it for real workloads.",
+
+  "vhosts": [
+    { "name": "demo", "default_queue_type": "quorum", "description": "Demo virtual host" }
+  ],
+
+  "users": [
+    { "name": "demo", "password": "${RABBITMQ_ADMIN_PASSWORD}", "tags": ["management"] }
+  ],
+
+  "permissions": [
+    { "vhost": "demo", "user": "demo", "configure": ".*", "write": ".*", "read": ".*" }
+  ],
+
+  "queues": [
+    { "vhost": "demo", "name": "demo", "type": "quorum" }
+  ]
+}

@@ -60,9 +60,13 @@ COPY config/ ./config/
 # ---------------------------------------------------------------------------
 # Non-root User
 # ---------------------------------------------------------------------------
+# /config holds the user topology (a mounted named volume in production, a repo
+# bind-mount in development). Creating it owned by 'init' means a fresh named
+# volume inherits that ownership, so first-boot seeding can write into it.
 RUN addgroup -g 1000 init \
     && adduser -u 1000 -G init -h /app -D init \
-    && chown -R init:init /app
+    && mkdir -p /config \
+    && chown -R init:init /app /config
 
 USER init
 

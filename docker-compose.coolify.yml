@@ -101,10 +101,12 @@ services:
       - APP_PASSWORD=${APP_PASSWORD:-app}
       - MONITORING_USER=${MONITORING_USER:-metrics}
       - MONITORING_PASSWORD=${MONITORING_PASSWORD:-metrics}
-    # Provision a topology by committing config/rabbitmq-init.json and mounting
-    # it (Coolify: add a file mount to /app/config/init.json), then uncomment:
-    #volumes:
-    #  - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.json}:/app/config/init.json:ro
+    volumes:
+      # Topology on a named volume, seeded with the demo (vhost/queue/user
+      # "demo") on first boot and editable at runtime. In Coolify, edit
+      # /config/init.json via the file browser, OR override it with a Coolify
+      # File Mount to /config/init.json (content managed in the Coolify UI).
+      - rabbitmq-config:/config
     # service_started (not service_healthy): the init runs its own readiness
     # poll (wait_for_rabbitmq), so it starts with the broker container and waits
     # internally — a long cold boot (cert-gen + quorum init) can't abort it via
@@ -122,3 +124,6 @@ volumes:
   rabbitmq-certs:
     driver: local
     name: ${STACK_NAME:-rabbitmq}-certs
+  rabbitmq-config:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-config

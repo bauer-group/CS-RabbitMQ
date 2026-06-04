@@ -110,11 +110,12 @@ services:
         max-size: "10m"
         max-file: "1"
     environment: *init-environment
-    # To provision a topology (vhosts/users/queues/...), copy
-    # config/rabbitmq-init.example.json to config/rabbitmq-init.json, set
-    # RABBITMQ_INIT_CONFIG in .env, then uncomment the two lines below:
-    #volumes:
-    #  - ${RABBITMQ_INIT_CONFIG:-./config/rabbitmq-init.json}:/app/config/init.json:ro
+    volumes:
+      # Topology lives on a named volume (NOT the repo), seeded with the demo
+      # (vhost/queue/user "demo") on first boot and editable at runtime. To start
+      # from the full example instead: docker cp config/rabbitmq-init.example.json
+      # <INIT_container>:/config/init.json  (or write the file into the volume).
+      - rabbitmq-config:/config
     # service_started (not service_healthy): the init runs its own readiness
     # poll (wait_for_rabbitmq), so it starts with the broker container and waits
     # internally — a long cold boot (cert-gen + quorum init) can't abort it via
@@ -134,6 +135,9 @@ volumes:
   rabbitmq-certs:
     driver: local
     name: ${STACK_NAME:-rabbitmq}-certs
+  rabbitmq-config:
+    driver: local
+    name: ${STACK_NAME:-rabbitmq}-config
 
 
 ### Networks ###

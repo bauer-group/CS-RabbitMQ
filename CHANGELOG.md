@@ -1,3 +1,9 @@
+## [0.4.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.2...v0.4.0) (2026-06-04)
+
+### 🚀 Features
+
+* **rabbitmq:** raised max message size default to 256 MiB, documented sizing ([a75291b](https://github.com/bauer-group/CS-RabbitMQ/commit/a75291bc0a230eeef8366c5cf6694390abb0494c))
+
 ## [0.3.2](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.1...v0.3.2) (2026-06-04)
 
 ### ♻️ Refactoring

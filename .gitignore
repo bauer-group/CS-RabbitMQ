@@ -10,6 +10,13 @@
 
 # Note: config/rabbitmq-init.json is the COMMITTED demo topology (dev bind-mount
 # + production volume seed). It uses ${VAR} placeholders, not real secrets.
+#
+# NEVER commit real/production topologies (they carry credentials / password
+# hashes). Any config/rabbitmq-init.<name>.json (migration, production, local, …)
+# is ignored — deploy those onto the rabbitmq-config volume, not into git.
+# Only the committed demo (above) and the .example reference are tracked.
+config/rabbitmq-init.*.json
+!config/rabbitmq-init.example.json
 
 # Generated / mounted certificates
 certs/

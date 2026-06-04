@@ -1,3 +1,9 @@
+## [0.3.2](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.1...v0.3.2) (2026-06-04)
+
+### ♻️ Refactoring
+
+* **rabbitmq-init:** dropped the redundant baked default config ([7154ca2](https://github.com/bauer-group/CS-RabbitMQ/commit/7154ca2b5bcfc7f933509440c884a40c295cf2e0))
+
 ## [0.3.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.3.0...v0.3.1) (2026-06-04)
 
 ## [0.3.0](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.2.1...v0.3.0) (2026-06-04)

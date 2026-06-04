@@ -8,9 +8,6 @@
 .env.bak
 !.env.example
 
-# Note: config/rabbitmq-init.json is the COMMITTED demo topology (dev bind-mount
-# + production volume seed). It uses ${VAR} placeholders, not real secrets.
-
 # Generated / mounted certificates
 certs/
 *.pem

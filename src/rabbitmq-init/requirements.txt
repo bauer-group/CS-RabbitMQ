@@ -2,4 +2,4 @@
 # Floating minor versions are acceptable (BAUER GROUP security standard);
 # Dependabot opens PRs for updates.
 rich>=15.0.0,<16
-requests>=2.31,<3
+requests>=2.34.2,<3

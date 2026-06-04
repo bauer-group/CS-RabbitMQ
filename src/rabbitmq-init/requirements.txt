@@ -1,5 +1,5 @@
 # Runtime dependencies for the RabbitMQ init container.
 # Floating minor versions are acceptable (BAUER GROUP security standard);
 # Dependabot opens PRs for updates.
-rich>=13,<15
+rich>=15.0.0,<16
 requests>=2.31,<3

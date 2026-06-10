@@ -1,3 +1,5 @@
+## [0.4.2](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.1...v0.4.2) (2026-06-10)
+
 ## [0.4.1](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.0...v0.4.1) (2026-06-04)
 
 ### ♻️ Refactoring

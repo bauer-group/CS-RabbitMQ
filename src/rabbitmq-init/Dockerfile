@@ -33,7 +33,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.source="https://github.com/bauer-group/CS-RabbitMQ"
 LABEL org.opencontainers.image.url="https://github.com/bauer-group/CS-RabbitMQ"
 LABEL org.opencontainers.image.documentation="https://github.com/bauer-group/CS-RabbitMQ#readme"
-LABEL org.opencontainers.image.version="0.4.3"
+LABEL org.opencontainers.image.version="0.4.4"
 
 # ---------------------------------------------------------------------------
 # Environment

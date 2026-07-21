@@ -1,3 +1,9 @@
+## [0.4.7](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.6...v0.4.7) (2026-07-21)
+
+### 🐛 Bug Fixes
+
+* **ci:** added the missing permissions block ([af94f60](https://github.com/bauer-group/CS-RabbitMQ/commit/af94f6014617dbf71e707b38edf7fb5c7c8c56a5))
+
 ## [0.4.6](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.5...v0.4.6) (2026-07-07)
 
 ## [0.4.5](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.4...v0.4.5) (2026-07-02)

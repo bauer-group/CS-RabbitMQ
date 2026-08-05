@@ -1,3 +1,5 @@
+## [0.4.11](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.10...v0.4.11) (2026-08-05)
+
 ## [0.4.10](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.9...v0.4.10) (2026-08-04)
 
 ## [0.4.9](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.8...v0.4.9) (2026-07-28)

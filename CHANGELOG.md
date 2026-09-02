@@ -4,6 +4,8 @@ All notable changes to this project are documented here. This file is maintained
 automatically by [semantic-release](https://github.com/semantic-release/semantic-release)
 on every release to `main`.
 
+## [0.4.17](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.16...v0.4.17) (2026-09-02)
+
 ## [0.4.16](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.15...v0.4.16) (2026-09-01)
 
 ## [0.4.15](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.14...v0.4.15) (2026-08-28)

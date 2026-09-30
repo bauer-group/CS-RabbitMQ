@@ -4,6 +4,15 @@ All notable changes to this project are documented here. This file is maintained
 automatically by [semantic-release](https://github.com/semantic-release/semantic-release)
 on every release to `main`.
 
+## [0.4.22](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.21...v0.4.22) (2026-09-30)
+
+### 🔧 Maintenance
+
+* **ci:** removed issue AI summary workflow ([57dd9c1](https://github.com/bauer-group/CS-RabbitMQ/commit/57dd9c160835ddfe00984865c63f5e980aa1f748)), references [bauer-group/automation-templates#105](https://github.com/bauer-group/automation-templates/issues/105)
+* **deps:** update base image rabbitmq ([8e3960d](https://github.com/bauer-group/CS-RabbitMQ/commit/8e3960d4d6f0c52f62b1444f7f77d99c628263e9))
+* update Dockerfile version to 0.4.21 ([c4266c0](https://github.com/bauer-group/CS-RabbitMQ/commit/c4266c0810bd404de205883ca70e85a3b2b1378b))
+* update Dockerfile version to 0.4.21 ([53a9c90](https://github.com/bauer-group/CS-RabbitMQ/commit/53a9c90795cc0c1041c752fddd5497b423d3fdfa))
+
 ## [0.4.21](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.20...v0.4.21) (2026-09-23)
 
 ### 🔧 Maintenance

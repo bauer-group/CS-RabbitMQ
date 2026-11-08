@@ -11,7 +11,8 @@
 #   - docker-compose: the compose files reference images only via
 #     ${VAR:-...}:${VAR:-latest}, which Dependabot cannot update
 #   - github-actions and any other .github/ change stay open (manual merge)
-# Only patch updates are merged (module default for merge-update-types).
+# Patch and minor updates are merged once the required PR CI passed; majors
+# stay manual (module default for merge-update-types).
 # =============================================================================
 
 name: 🔧 Docker Maintenance

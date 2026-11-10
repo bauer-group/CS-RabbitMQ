@@ -4,6 +4,17 @@ All notable changes to this project are documented here. This file is maintained
 automatically by [semantic-release](https://github.com/semantic-release/semantic-release)
 on every release to `main`.
 
+## [0.4.30](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.29...v0.4.30) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **docker:** bump python in /src/rabbitmq-init ([#11](https://github.com/bauer-group/CS-RabbitMQ/issues/11)) ([d15e962](https://github.com/bauer-group/CS-RabbitMQ/commit/d15e962aacf014f530643c2eb5491ae3a5a7faa3))
+
+### 🔧 Maintenance
+
+* update Dockerfile version to 0.4.29 ([6847a6f](https://github.com/bauer-group/CS-RabbitMQ/commit/6847a6fe7d81c0c780e5a9733fee6ee3498642fd))
+* update Dockerfile version to 0.4.29 ([cda86ab](https://github.com/bauer-group/CS-RabbitMQ/commit/cda86ab3e70e4445797a598480967827452d795c))
+
 ## [0.4.29](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.28...v0.4.29) (2026-11-06)
 
 ### 🔧 Maintenance

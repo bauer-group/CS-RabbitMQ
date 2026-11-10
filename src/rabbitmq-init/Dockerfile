@@ -14,7 +14,7 @@
 # Documentation: https://github.com/bauer-group/CS-RabbitMQ
 # ===============================================================================
 
-FROM python:3.14-alpine
+FROM python:3.15-alpine
 
 # ---------------------------------------------------------------------------
 # Metadata Labels (Legacy)

@@ -5,14 +5,14 @@
     {
       "name": "rabbitmq",
       "image": "rabbitmq",
-      "tag": "4-management",
+      "dockerfile": "src/rabbitmq/Dockerfile",
       "variable": "RABBITMQ_MANAGEMENT_DIGEST",
       "description": "RabbitMQ broker base image, floating 4.x (src/rabbitmq/Dockerfile)"
     },
     {
       "name": "python-alpine",
       "image": "python",
-      "tag": "3.15-alpine",
+      "dockerfile": "src/rabbitmq-init/Dockerfile",
       "variable": "PYTHON_ALPINE_DIGEST",
       "description": "Base image for the rabbitmq-init container (src/rabbitmq-init/Dockerfile)"
     },

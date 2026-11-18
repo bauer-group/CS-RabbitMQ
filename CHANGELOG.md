@@ -4,6 +4,14 @@ All notable changes to this project are documented here. This file is maintained
 automatically by [semantic-release](https://github.com/semantic-release/semantic-release)
 on every release to `main`.
 
+## [0.4.32](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.31...v0.4.32) (2026-11-18)
+
+### 🔧 Maintenance
+
+* **deps:** update base image rabbitmq [skip ci] ([3cda192](https://github.com/bauer-group/CS-RabbitMQ/commit/3cda192be2fa01dd2414939b38bc7885fdbc38fb))
+* update Dockerfile version to 0.4.31 ([1435e6c](https://github.com/bauer-group/CS-RabbitMQ/commit/1435e6c7a557e3fe22a3fbc1f4cc6d58c29607ee))
+* update Dockerfile version to 0.4.31 ([d1f42a8](https://github.com/bauer-group/CS-RabbitMQ/commit/d1f42a8005a660f367c09b42f2164eab9aaaaa0d))
+
 ## [0.4.31](https://github.com/bauer-group/CS-RabbitMQ/compare/v0.4.30...v0.4.31) (2026-11-12)
 
 ### 🔧 Maintenance
